@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>動機理論自我測驗</title>
+<style>
+:root{--navy:#173b63;--blue:#2f80b7;--pale:#f2f8fc;--line:#d5e5f1;--green:#217a52;--red:#b43d3d}
+*{box-sizing:border-box}
+body{margin:0;background:#edf3f7;color:#233548;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.65}
+header{background:linear-gradient(120deg,#17466e,#398fbd);color:white;padding:28px 18px;text-align:center}
+header h1{margin:0;font-size:clamp(1.5rem,4vw,2.2rem)} header p{margin:6px 0 0;opacity:.92}
+main{max-width:900px;margin:22px auto;padding:0 14px 40px}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.progress-wrap{height:8px;background:#dce7ef;border-radius:20px;overflow:hidden;flex:1;min-width:150px}
+#progress{height:100%;width:0;background:#38a17a;transition:width .2s}
+.status{font-size:.92rem;color:#53687a}
+.question{background:white;border:1px solid var(--line);border-radius:15px;padding:20px;margin:14px 0;box-shadow:0 3px 12px #1d47600a}
+.qhead{display:flex;gap:10px;align-items:flex-start}
+.num{background:#e3f2fb;color:#1d6797;border-radius:9px;padding:2px 9px;font-weight:800;white-space:nowrap}
+.qtext{font-weight:750;font-size:1.06rem;margin:0}
+.options{display:grid;gap:9px;margin-top:15px}
+.option{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border:1px solid #d9e4ec;border-radius:10px;cursor:pointer;background:#fff;transition:.15s}
+.option:hover{background:#f4faff;border-color:#87b9d8}
+.option input{margin-top:5px;accent-color:#287db1;flex-shrink:0}
+.option.correct{border-color:#76c39b;background:#effaf3}
+.option.wrong{border-color:#e5a1a1;background:#fff3f3}
+.feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:9px;font-size:.95rem}
+.feedback.show{display:block}.feedback.good{background:#effaf3;color:#1d6846}.feedback.bad{background:#fff3f3;color:#9c3030}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+button{border:0;border-radius:10px;padding:11px 17px;font-size:1rem;font-weight:700;cursor:pointer}
+.primary{background:var(--blue);color:white}.secondary{background:#e0eaf1;color:#25435b}
+button:disabled{opacity:.45;cursor:not-allowed}
+#result{display:none;background:white;border:2px solid #b9d9eb;border-radius:15px;padding:22px;margin:20px 0}
+#result h2{margin-top:0;color:var(--navy)}.score{font-size:2rem;font-weight:850;color:var(--blue)}
+.small{font-size:.9rem;color:#617587}
+footer{text-align:center;color:#708395;font-size:.85rem;padding:10px}
+@media(min-width:700px){.options{grid-template-columns:1fr 1fr}}
+@media print{body{background:white}header{background:white;color:#173b63;border-bottom:2px solid #173b63}.question{break-inside:avoid;box-shadow:none}.actions,.toolbar{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>動機理論自我測驗</h1>
+  <p>Motivation Theories｜概念理解、理論辨識與情境應用</p>
+</header>
+<main>
+  <div class="toolbar">
+    <div class="status" id="answered">已作答 0 / 15 題</div>
+    <div class="progress-wrap" aria-label="作答進度"><div id="progress"></div></div>
+    <div class="status">每題單選</div>
+  </div>
+  <div id="quiz"></div>
+  <div class="actions">
+    <button class="primary" id="submit">提交答案並查看解析</button>
+    <button class="secondary" id="reset">重新作答</button>
+  </div>
+  <section id="result" aria-live="polite"></section>
+  <p class="small">建議：先獨立作答，再提交查看正確答案與解析。本測驗為教學練習用途。</p>
+</main>
+<footer>動機理論｜教學練習版</footer>
+<script>
+const questions = [
+{q:"1. 麥孤獨（William McDougall）的本能論，主要強調什麼？",o:["人類行為主要由本能傾向所驅動","行為完全由外在獎賞決定","所有需求都依固定階層滿足","動機等於對成功的主觀期望"],a:0,e:"本能論將先天的本能傾向視為理解人類行為與動機的重要來源。"},
+{q:"2. 赫爾（Clark Hull）的驅力減少理論認為，行為的重要動力之一是：",o:["追求心流體驗","降低生理需求所產生的驅力","追求自我實現","滿足自主、勝任與關係需求"],a:1,e:"驅力減少理論主張，需求造成的內在緊張可促使個體採取行動，以降低驅力。"},
+{q:"3. 耶基斯—多德森定律通常以哪一種關係呈現警醒程度與表現？",o:["直線正相關","完全負相關","倒 U 型關係","兩者毫無關係"],a:2,e:"一般而言，警醒程度過低或過高都可能降低表現；適當程度與任務難度有關。"},
+{q:"4. 史金納的操作制約最重視哪一項因素對行為的影響？",o:["行為後果","潛意識衝突","需求階層","個人生命故事"],a:0,e:"操作制約關注行為後果如何改變該行為未來再次出現的機率。"},
+{q:"5. 赫茲伯格的雙因素理論中，薪資、工作條件與人際關係通常屬於：",o:["激勵因素","衛生因素","自我效能因素","成就需求因素"],a:1,e:"衛生因素不足容易造成不滿；改善衛生因素不一定就能帶來高度滿足或內在激勵。"},
+{q:"6. 麥克里蘭提出的三類重要習得需求為何？",o:["安全、歸屬、自我實現","自主、勝任、關係","成就、權力、親和","期望、工具性、價值"],a:2,e:"麥克里蘭常以成就需求（n-Ach）、權力需求（n-Pow）與親和需求（n-Aff）說明個體差異。"},
+{q:"7. 阿特金森的成就動機模型，主要用來理解個體在成就情境中的：",o:["成功期望與誘因價值等因素","單純的生理飢餓","工作場所的衛生條件","感覺刺激的整合"],a:0,e:"阿特金森的成就動機模型討論追求成功與避免失敗的傾向，並納入成功期望及誘因價值等因素。"},
+{q:"8. 弗魯姆期望理論中的「期望、工具性、價賞」分別最接近哪個意思？",o:["需求、習慣、人格","努力能否帶來表現、表現能否帶來結果、結果有多大吸引力","本能、驅力、反射","自主、心流、復原"],a:1,e:"期望是努力與表現的連結；工具性是表現與結果的連結；價賞是個體對結果的重視程度。"},
+{q:"9. 馬斯洛需求階層論的基本主張是：",o:["所有人任何時刻都只受單一需求影響","需求可能呈現由基本需求到較高層次需求的相對階層","外在獎賞永遠比內在動機有效","動機只能由生理驅力解釋"],a:1,e:"馬斯洛提出需求具有層次性的觀點，但實際生活中需求不一定嚴格依序出現。"},
+{q:"10. 心流（Flow）狀態較可能出現在什麼情況？",o:["挑戰遠高於能力，且沒有任何回饋","任務毫無挑戰，個體完全無須投入","挑戰與技能大致相稱，目標清楚且能獲得回饋","個體只為避免受到處罰而行動"],a:2,e:"心流常與挑戰和技能的適配、清楚目標、即時回饋及高度投入有關。"},
+{q:"11. 跨理論模式（TTM）主要協助理解哪一種歷程？",o:["行為改變可能經歷的不同階段","人類視覺訊息的神經傳導","工作滿意度的兩類因素","生理需求如何形成驅力"],a:0,e:"TTM 常以懵懂／未考慮、沉思、準備、行動、維持等階段理解行為改變歷程；不同版本的階段名稱可能略有差異。"},
+{q:"12. 班度拉的自我效能（Self-efficacy）指的是：",o:["客觀上已具備的所有技能總和","個體對自己能否完成特定任務的能力信念","對獎賞價值的評估","他人對個體的評價"],a:1,e:"自我效能是對自己能否組織並執行達成特定表現所需行動的信念，會影響選擇、努力與堅持。"},
+{q:"13. 自我決定論（SDT）指出，支持內在動機與良好心理發展的三項基本心理需求是：",o:["成就、權力、親和","安全、金錢、地位","自主、勝任、關係","期望、工具性、價賞"],a:2,e:"SDT 強調自主（autonomy）、勝任（competence）與關係（relatedness）三項基本心理需求。"},
+{q:"14. Keller 的 ARCS 動機設計模式包含哪四個要素？",o:["注意、關聯、信心、滿足","自主、關係、勝任、心流","成就、權力、親和、驅力","目標、努力、表現、獎賞"],a:0,e:"ARCS 分別代表 Attention（注意）、Relevance（關聯）、Confidence（信心）與 Satisfaction（滿足）。"},
+{q:"15. 在職能治療中，MOHO（人類職能模式）特別強調理解個案的：",o:["只有肌力與關節活動度","意志、習慣化、執行能力，以及環境之間的交互作用","只有疾病診斷與症狀","只要提供獎品就能維持參與"],a:1,e:"MOHO 從意志（volition）、習慣化（habituation）、執行能力（performance capacity）與環境等面向理解職能參與。"}
+];
+const quiz = document.getElementById('quiz');
+const answers = {};
+questions.forEach((item,i)=>{
+  const card=document.createElement('section'); card.className='question'; card.id='q'+i;
+  const head=document.createElement('div'); head.className='qhead';
+  const num=document.createElement('span'); num.className='num'; num.textContent=`第 ${i+1} 題`;
+  const stem=document.createElement('p'); stem.className='qtext'; stem.textContent=item.q.replace(/^\d+\.\s*/,'');
+  head.append(num,stem); card.append(head);
+  const opts=document.createElement('div'); opts.className='options';
+  item.o.forEach((label,j)=>{
+    const lab=document.createElement('label'); lab.className='option'; lab.id=`opt-${i}-${j}`;
+    const inp=document.createElement('input'); inp.type='radio'; inp.name=`q${i}`; inp.value=j;
+    inp.addEventListener('change',()=>{answers[i]=j;updateProgress();});
+    const txt=document.createElement('span'); txt.textContent=String.fromCharCode(65+j)+'. '+label;
+    lab.append(inp,txt); opts.append(lab);
+  });
+  card.append(opts);
+  const fb=document.createElement('div'); fb.className='feedback'; fb.id=`fb-${i}`; card.append(fb);
+  quiz.append(card);
+});
+function updateProgress(){
+ const n=Object.keys(answers).length;
+ document.getElementById('answered').textContent=`已作答 ${n} / ${questions.length} 題`;
+ document.getElementById('progress').style.width=`${n/questions.length*100}%`;
+}
+document.getElementById('submit').addEventListener('click',()=>{
+ let score=0;
+ questions.forEach((item,i)=>{
+   const fb=document.getElementById(`fb-${i}`);
+   fb.className='feedback show';
+   item.o.forEach((_,j)=>{
+     const el=document.getElementById(`opt-${i}-${j}`); el.classList.remove('correct','wrong');
+     if(j===item.a)el.classList.add('correct');
+     if(answers[i]===j && j!==item.a)el.classList.add('wrong');
+   });
+   if(answers[i]===item.a)score++;
+   if(answers[i]===undefined){fb.classList.add('bad');fb.textContent=`尚未作答。正確答案：${String.fromCharCode(65+item.a)}. ${item.o[item.a]}。${item.e}`;}
+   else if(answers[i]===item.a){fb.classList.add('good');fb.textContent=`答對！${item.e}`;}
+   else{fb.classList.add('bad');fb.textContent=`答錯。正確答案：${String.fromCharCode(65+item.a)}. ${item.o[item.a]}。${item.e}`;}
+ });
+ const result=document.getElementById('result'); result.style.display='block';
+ const pct=Math.round(score/questions.length*100);
+ let msg=pct>=90?'非常好！已能掌握多數核心概念。':pct>=70?'表現不錯，建議再複習錯題的理論差異。':'建議依解析複習各理論的核心概念與應用情境。';
+ result.innerHTML=`<h2>測驗結果</h2><div class="score">${score} / ${questions.length} 題（${pct}%）</div><p>${msg}</p><p>綠色選項為正確答案；紅色選項表示本次選錯。</p>`;
+ result.scrollIntoView({behavior:'smooth',block:'start'});
+ document.querySelectorAll('input[type=radio]').forEach(el=>el.disabled=true);
+ document.getElementById('submit').disabled=true;
+});
+document.getElementById('reset').addEventListener('click',()=>{
+ Object.keys(answers).forEach(k=>delete answers[k]);
+ document.querySelectorAll('input[type=radio]').forEach(el=>{el.checked=false;el.disabled=false;});
+ document.querySelectorAll('.option').forEach(el=>el.classList.remove('correct','wrong'));
+ document.querySelectorAll('.feedback').forEach(el=>{el.className='feedback';el.textContent='';});
+ document.getElementById('result').style.display='none';
+ document.getElementById('submit').disabled=false;
+ updateProgress(); window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+</body>
+</html>
